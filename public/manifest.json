@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "Quizlet Getter",
+  "description": "Base Level Extension",
+  "version": "1.0",
+  "content_scripts": [
+    {
+      "js": ["index.js"],
+      "css": ["index.css"],
+      "matches": ["https://quizlet.com/*"]
+    }
+  ],
+  "action": {
+    "default_icon": "image3.png"
+  },
+  "icons": {
+    "16": "image3.png",
+    "32": "image3.png",
+    "48": "image3.png",
+    "128": "image3.png"
+  }
+}
