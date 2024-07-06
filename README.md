@@ -19,21 +19,30 @@
 
 - Go to your Quizlet
 - Load all the question in your page
-- Scroll to the top of website and click "Get all Flashcards"
+- Scroll to the top of website
+- Choose the format of your flashcards
+- Click "Get all Flashcards"
 
-![](images/button.png)
+![](images/format.png)
 
-## Caution
+## Supporting Formats
 
-### Only work if your target page have the question format like below:
+### Question Definition Format
 
-- Must be a multichoices question
+Example:
+![](images/ques-def.png)
+
+### Definition Question Format
+
+Like Question Definition Format but opposite
+
+### Coursera Key Format
+
+![](images/coursera-format.png)
+
+- A multichoices question
 - Question in the left box
 - Answers belong with question in the left box
 - Answers follow the format: a. Answer 1, b. Answer 2, ...
 - Keys in the right box
-
-### Examples
-
-![](images/format.png)
-![](images/format2.png)
+- Keys doesn't contain any definitions, only have the keys character
