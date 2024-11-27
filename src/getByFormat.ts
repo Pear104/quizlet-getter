@@ -25,12 +25,20 @@ export const getCoursera = (question: string, keys: string) => {
   return `${question} | ${keyOutput.join(", ")}`; // Have the format: Question + Answer | Key
 };
 
-export const getQuestionDefinition = (question: string, keys: string) => {
+export const getQuestionDefinition = (
+  question: string,
+  keys: string,
+  delimiter: string = "|"
+) => {
   question = question?.replace(/(<([^>]+)>)/gi, "");
-  return `${question} | ${keys}`;
+  return `${question} ${delimiter} ${keys}`;
 };
 
-export const getDefinitionQuestion = (question: string, keys: string) => {
+export const getDefinitionQuestion = (
+  question: string,
+  keys: string,
+  delimiter: string = "|"
+) => {
   question = question?.replace(/(<([^>]+)>)/gi, "");
-  return `${keys} | ${question}`;
+  return `${question} ${delimiter} ${keys}`;
 };

@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Quizlet Getter",
-  "description": "Base Level Extension",
+  "name": "Get Quizlet Flashcards",
+  "description": "Extension for getting flashcards from Quizlet",
   "version": "1.0",
   "content_scripts": [
     {
@@ -11,12 +11,12 @@
     }
   ],
   "action": {
-    "default_icon": "image3.png"
+    "default_icon": "icon.png"
   },
   "icons": {
-    "16": "image3.png",
-    "32": "image3.png",
-    "48": "image3.png",
-    "128": "image3.png"
+    "16": "icon.png",
+    "32": "icon.png",
+    "48": "icon.png",
+    "128": "icon.png"
   }
 }
