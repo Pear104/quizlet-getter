@@ -1,12 +1,14 @@
 import * as cheerio from "cheerio";
 import { useEffect, useState } from "react";
-import {
-  getCoursera,
-  getDefinitionQuestion,
-  getQuestionDefinition,
-} from "./getByFormat";
+import { FormatConstructor } from "./utils";
+
+export type FlashcardItem = {
+  term: string;
+  definition: string;
+};
+
 export default function App() {
-  const [format, setFormat] = useState("ques-def");
+  const [format, setFormat] = useState("txt");
   const [delimiter, setDelimiter] = useState("|");
   const link = document.createElement("a");
 
@@ -24,52 +26,63 @@ export default function App() {
 
   const handleClick = () => {
     // File content
-    const outputLines: any[] = [];
+    let outputLines: FlashcardItem[] = [];
 
     // Loop through each question
     $(".SetPageTerms-term .sebjgj3").each((_i, e) => {
-      // Get the content of the question and key
-      let questionText = $(e).find("div:nth-child(1)").html()?.trim();
-      let keys: any = $(e).find("div:nth-child(2)").text().trim();
+      // Get the content of the term and definition
+      let term: string =
+        $(e)
+          .find("div:nth-child(1) > div > div > span")
+          .html() // Get the inner HTML, including tags
+          ?.replace(/<br\s*\/?>/g, " ") // Replace <br> tags with spaces
+          .replace(/\s+/g, " ")
+          .replace('<span class="TermText notranslate lang-en">', "") // Normalize extra spaces (optional)
+          .replace("</span>", "") // Normalize extra spaces (optional)
+          .trim() || ""; // Trim leading and trailing spaces
 
-      let outputLine = "";
+      let definition: string = $(e).find("div:nth-child(2)").text()?.trim();
 
-      // Get the output line base on the format
-      switch (format) {
-        case "ques-def":
-          outputLine = getQuestionDefinition(
-            questionText + "",
-            keys,
-            delimiter
-          );
-          break;
-        case "def-ques":
-          outputLine = getDefinitionQuestion(
-            questionText + "",
-            keys,
-            delimiter
-          );
-          break;
-        case "coursera":
-          outputLine = getCoursera(questionText + "", keys);
-          break;
-        default:
-          outputLine = getQuestionDefinition(questionText + "", keys);
-          break;
-      }
-
-      // Output question and key to the file
-      outputLines.push(outputLine);
-      // console.log(questionText);
-      // console.log(answers);
-      // console.log(key);
-      // console.log(outputLines);
+      outputLines.push({
+        term: term,
+        definition: definition,
+      });
     });
+    let result: string = "";
+    switch (format) {
+      case "txt":
+        result = FormatConstructor.getTxt(outputLines, delimiter);
+        break;
+      case "json":
+        result = FormatConstructor.getJson(outputLines);
+        break;
+      case "xml":
+        result = FormatConstructor.getXml(outputLines);
+        break;
+      // case "anki":
+      //   outputLines = outputLines.map((line) => line.trim());
+      //   break;
+      case "html":
+        result = FormatConstructor.getHtml(outputLines);
+        break;
+      case "md":
+        result = FormatConstructor.getMd(outputLines);
+        break;
+      case "yaml":
+        result = FormatConstructor.getYaml(outputLines);
+        break;
+      case "csv":
+        result = FormatConstructor.getTxt(outputLines, ",");
+        break;
+      default:
+        result = FormatConstructor.getTxt(outputLines);
+        break;
+    }
 
     // Download the flashcard text file
-    const file = new Blob([outputLines.join("\n")], { type: "text/plain" });
+    const file = new Blob([result], { type: "text/plain" });
     link.href = URL.createObjectURL(file); // Create a url to download
-    link.download = `${title}.txt`; // File name
+    link.download = `${title}.${format}`; // File name
     link.click(); // Click the url to download
     URL.revokeObjectURL(link.href); // Invoke the download url
   };
@@ -88,8 +101,14 @@ export default function App() {
               onChange={(e) => setFormat(e.target.value)}
               className="w-full mt-2 py-3 h-[48px] px-2 bg-blue-600 text-lg font-semibold rounded-lg hover:bg-blue-500 focus-visible:outline-none"
             >
-              <option value="ques-def">Question - Definition</option>
-              <option value="def-ques">Definition - Question</option>
+              <option value="txt">TXT</option>
+              <option value="json">JSON</option>
+              <option value="xml">XML</option>
+              {/* <option value="anki">Anki-Ready Format</option> */}
+              <option value="md">Markdown</option>
+              <option value="html">HTML</option>
+              <option value="yaml">YAML</option>
+              <option value="csv">CSV (not reccomended)</option>
             </select>
           </div>
           <div>
@@ -99,10 +118,11 @@ export default function App() {
             <input
               onChange={(e: any) => setDelimiter(e.target.value)}
               defaultValue={"|"}
+              disabled={format !== "csv" && format !== "txt"}
               type="text"
               id="cards"
               name="cards"
-              className="w-full mt-2 py-2 px-3 h-[48px] bg-blue-600 hover:bg-blue-500 focus-visible:outline-none text-lg font-semibold rounded-lg "
+              className="disabled:opacity-50 w-full mt-2 py-2 px-3 h-[48px] bg-blue-600 hover:bg-blue-500 focus-visible:outline-none text-lg font-semibold rounded-lg disabled:hover:bg-blue-600 disabled:text-gray-400"
             />
           </div>
 

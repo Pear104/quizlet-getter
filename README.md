@@ -27,3 +27,13 @@
 ## Result example
 
 ![](images/demo3.png)
+
+## Supported formats
+
+- TXT
+- JSON
+- XML
+- YAML
+- Markdown
+- HTML
+- CSV (not recommended)

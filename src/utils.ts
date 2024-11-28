@@ -1,41 +1,81 @@
-export function mapToObject(map: Map<string, Map<string, string[]>>) {
-  const obj: any = {};
-  map.forEach((value, key: any) => {
-    obj[key] = {};
-    value.forEach((innerValue, innerKey) => {
-      obj[key][innerKey] = innerValue;
+import { FlashcardItem } from "./App";
+
+function escapeXml(unsafe: string) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&apos;");
+}
+
+function escapeHtml(unsafe: string) {
+  return unsafe
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
+export class FormatConstructor {
+  static getJson(data: FlashcardItem[]): string {
+    return JSON.stringify(data);
+  }
+
+  static getTxt(data: FlashcardItem[], delimiter: string = "|"): string {
+    return data
+      .map((item) => `${item.term} ${delimiter} ${item.definition}`)
+      .join("\n");
+  }
+
+  static getXml(json: FlashcardItem[]): string {
+    let xml = "<flashcards>\n"; // Root element
+
+    json.forEach((item) => {
+      xml += "  <card>\n";
+      xml += `    <term>${escapeXml(item.term)}</term>\n`;
+      xml += `    <definition>${escapeXml(item.definition)}</definition>\n`;
+      xml += "  </card>\n";
     });
-  });
-  return obj;
-}
 
-export function objectToMap(obj: any): Map<string, Map<string, string[]>> {
-  const map = new Map<string, Map<string, string[]>>();
-  for (const [key, value] of Object.entries(obj as { [s: string]: unknown })) {
-    const innerMap = new Map<string, string[]>();
-    for (const [innerKey, innerValue] of Object.entries(
-      value as { [s: string]: string[] }
-    )) {
-      innerMap.set(innerKey, innerValue);
-    }
-    map.set(key, innerMap);
+    xml += "</flashcards>";
+    return xml;
   }
-  return map;
-}
 
-export const textToColor = (text: string): string => {
-  const intensity = 120;
-  let hash = 0;
-  for (let i = 0; i < text.length; i++) {
-    hash = text.charCodeAt(i) + ((hash << 5) - hash);
-    hash = hash & hash;
+  static getYaml(json: FlashcardItem[]): string {
+    let yaml = "";
+
+    json.forEach((item) => {
+      yaml += `- term: "${item.term}"\n`;
+      yaml += `  definition: "${item.definition}"\n`;
+    });
+
+    return yaml;
   }
-  let color = "#";
-  for (let i = 0; i < 3; i++) {
-    let value = (hash >> (i * 8)) & 255;
-    // Increase each RGB component to make the color lighter
-    value = Math.min(value + intensity, 255); // Add 100 to make it lighter
-    color += ("00" + value.toString(16)).slice(-2);
+
+  static getMd(json: FlashcardItem[]): string {
+    let markdown = "";
+
+    json.forEach((item) => {
+      markdown += `- **${item.term}**: ${item.definition}\n`;
+    });
+
+    return markdown;
   }
-  return color;
-};
+
+  static getHtml(json: FlashcardItem[]): string {
+    let html = `<table border="1" cellspacing="0" cellpadding="5">\n`;
+    html += `  <thead>\n    <tr>\n      <th>Term</th>\n      <th>Definition</th>\n    </tr>\n  </thead>\n  <tbody>\n`;
+
+    json.forEach((item) => {
+      html += `    <tr>\n`;
+      html += `      <td>${escapeHtml(item.term)}</td>\n`;
+      html += `      <td>${escapeHtml(item.definition)}</td>\n`;
+      html += `    </tr>\n`;
+    });
+
+    html += `  </tbody>\n</table>`;
+    return html;
+  }
+}
