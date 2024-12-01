@@ -19,12 +19,12 @@ function escapeHtml(unsafe: string) {
 }
 
 export class FormatConstructor {
-  static getJson(data: FlashcardItem[]): string {
-    return JSON.stringify(data);
+  static getJson(json: FlashcardItem[]): string {
+    return JSON.stringify(json);
   }
 
-  static getTxt(data: FlashcardItem[], delimiter: string = "|"): string {
-    return data
+  static getTxt(json: FlashcardItem[], delimiter: string = "|"): string {
+    return json
       .map((item) => `${item.term} ${delimiter} ${item.definition}`)
       .join("\n");
   }

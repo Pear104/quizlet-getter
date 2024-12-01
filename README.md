@@ -4,14 +4,9 @@
 
 ![](images/demo2.png)
 
-## Installation
+## Install
 
-- Download repository
-- Unzip the packed file
-- Go to chrome extension manager
-- Turn on "Developer mode"
-- Click "Load unpacked" button
-- Choose "dist" folder in the extracted folder
+https://chromewebstore.google.com/detail/get-quizlet-flashcards/oaaodhahcdoonllnnhamgkcidjicjcad
 
 ## How to use
 
@@ -19,8 +14,8 @@
 - Load all the question in your page
 - Scroll to the top of website
 - Choose the format
-- Choose the delimiter
-- Click "Download"
+- Choose the delimiter (optional)
+- Click "Download" or "Copy" it
 
 ![](images/demo1.png)
 

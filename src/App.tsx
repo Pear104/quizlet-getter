@@ -1,6 +1,7 @@
 import * as cheerio from "cheerio";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { FormatConstructor } from "./utils";
+import { Download, Tick } from "./Icon";
 
 export type FlashcardItem = {
   term: string;
@@ -10,12 +11,8 @@ export type FlashcardItem = {
 export default function App() {
   const [format, setFormat] = useState("txt");
   const [delimiter, setDelimiter] = useState("|");
+  const [isCopied, setIsCopied] = useState(false);
   const link = document.createElement("a");
-
-  // Get the raw html string
-  const data: string =
-    document.querySelector(".SetPageTerms-termsList")?.innerHTML || "";
-  const $ = cheerio.load(data);
 
   // Get flashcard set title
   const title = document
@@ -24,8 +21,11 @@ export default function App() {
     ?.replace(" Flashcards | Quizlet", "")
     ?.replace(" Flashcards", "");
 
-  const handleClick = () => {
-    // File content
+  const getFlashcards = () => {
+    // Get the raw html string
+    const data: string =
+      document.querySelector(".SetPageTerms-termsList")?.innerHTML || "";
+    const $ = cheerio.load(data);
     let outputLines: FlashcardItem[] = [];
 
     // Loop through each question
@@ -34,50 +34,58 @@ export default function App() {
       let term: string =
         $(e)
           .find("div:nth-child(1) > div > div > span")
-          .html() // Get the inner HTML, including tags
-          ?.replace(/<br\s*\/?>/g, " ") // Replace <br> tags with spaces
+          .html()
+          ?.replace(/<br\s*\/?>/g, " ")
           .replace(/\s+/g, " ")
           .replace('<span class="TermText notranslate lang-en">', "") // Normalize extra spaces (optional)
           .replace("</span>", "") // Normalize extra spaces (optional)
-          .trim() || ""; // Trim leading and trailing spaces
+          .replaceAll("&gt;", ">")
+          .replaceAll("&lt;", "<")
+          .trim() || "";
 
-      let definition: string = $(e).find("div:nth-child(2)").text()?.trim();
+      // let definition: string = $(e).find("div:nth-child(2)").text()?.trim();
+      let definition: string =
+        $(e)
+          .find("div:nth-child(2) > div > span > span")
+          .html()
+          ?.replace(/<br\s*\/?>/g, " ")
+          .replace(/\s+/g, " ")
+          .replace('<span class="TermText notranslate lang-en">', "") // Normalize extra spaces (optional)
+          .replace("</span>", "") // Normalize extra spaces (optional)
+          .replaceAll("&gt;", ">")
+          .replaceAll("&lt;", "<")
+          .trim() || "";
 
       outputLines.push({
         term: term,
         definition: definition,
       });
     });
-    let result: string = "";
     switch (format) {
       case "txt":
-        result = FormatConstructor.getTxt(outputLines, delimiter);
-        break;
+        return FormatConstructor.getTxt(outputLines, delimiter);
       case "json":
-        result = FormatConstructor.getJson(outputLines);
-        break;
+        return FormatConstructor.getJson(outputLines);
       case "xml":
-        result = FormatConstructor.getXml(outputLines);
-        break;
+        return FormatConstructor.getXml(outputLines);
+      case "html":
+        return FormatConstructor.getHtml(outputLines);
+      case "md":
+        return FormatConstructor.getMd(outputLines);
+      case "yaml":
+        return FormatConstructor.getYaml(outputLines);
+      case "csv":
+        return FormatConstructor.getTxt(outputLines, ",");
       // case "anki":
       //   outputLines = outputLines.map((line) => line.trim());
       //   break;
-      case "html":
-        result = FormatConstructor.getHtml(outputLines);
-        break;
-      case "md":
-        result = FormatConstructor.getMd(outputLines);
-        break;
-      case "yaml":
-        result = FormatConstructor.getYaml(outputLines);
-        break;
-      case "csv":
-        result = FormatConstructor.getTxt(outputLines, ",");
-        break;
       default:
-        result = FormatConstructor.getTxt(outputLines);
-        break;
+        return FormatConstructor.getTxt(outputLines);
     }
+  };
+
+  const handleDownload = () => {
+    let result = getFlashcards();
 
     // Download the flashcard text file
     const file = new Blob([result], { type: "text/plain" });
@@ -86,10 +94,20 @@ export default function App() {
     link.click(); // Click the url to download
     URL.revokeObjectURL(link.href); // Invoke the download url
   };
+
+  const handleCopy = () => {
+    let result = getFlashcards();
+    navigator.clipboard.writeText(result);
+    setIsCopied(true);
+    setTimeout(() => {
+      setIsCopied(false);
+    }, 2000);
+  };
+
   return (
     <div className="w-full">
       <div className="text-3xl font-bold mb-3">{title}</div>
-      <div className="flex gap-8">
+      <div className="flex gap-4">
         <div className="grid grid-cols-3 gap-6 items-end justify-around">
           <div>
             <label htmlFor="cards" className="pr-4 font-semibold mb-2">
@@ -104,11 +122,11 @@ export default function App() {
               <option value="txt">TXT</option>
               <option value="json">JSON</option>
               <option value="xml">XML</option>
-              {/* <option value="anki">Anki-Ready Format</option> */}
               <option value="md">Markdown</option>
               <option value="html">HTML</option>
               <option value="yaml">YAML</option>
               <option value="csv">CSV (not reccomended)</option>
+              {/* <option value="anki">Anki-Ready Format</option> */}
             </select>
           </div>
           <div>
@@ -126,12 +144,24 @@ export default function App() {
             />
           </div>
 
-          <div>
+          <div className="grid grid-cols-1 gap-1">
             <div
-              className="cursor-pointer transition-all duration-200 font-semibold py-4 px-8 rounded-lg border-2 border-black bg-blue-800 text-xl hover:bg-white hover:text-black flex justify-center"
-              onClick={handleClick}
+              className="w-full cursor-pointer transition-all duration-200 font-semibold py-2 px-3 rounded-lg border-2 border-black bg-blue-800 text-base hover:bg-white hover:text-black flex justify-center gap-2"
+              onClick={handleDownload}
             >
-              Download
+              Download <Download size={20} />
+            </div>
+            <div
+              className="w-full cursor-pointer transition-all duration-200 font-semibold py-2 px-3 rounded-lg border-2 border-black bg-blue-800 text-base hover:bg-white hover:text-black flex justify-center gap-2"
+              onClick={handleCopy}
+            >
+              {isCopied ? (
+                <>
+                  Copied <Tick />
+                </>
+              ) : (
+                "Copy"
+              )}
             </div>
           </div>
         </div>
